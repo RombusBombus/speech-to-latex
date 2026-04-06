@@ -1,8 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
+import pyaudio
+import threading
+import time
+import wave
+from AudioManager import AudioManager
 
 
 DARK_BG = "#1e1e1e"
+START_RECORDING_TEXT = "Start Recording"
+STOP_RECORDING_TEXT = "Stop Recording"
 
 
 class App:
@@ -15,6 +22,10 @@ class App:
         self.setup_style()
         self.create_widgets()
         self.configure_grid()
+
+        self.audio_manager = AudioManager(self.root)
+        self.root.protocol("WM_DELETE_WINDOW", self.audio_manager.on_closing)
+    
 
     def setup_style(self):
         style = ttk.Style()
@@ -57,11 +68,8 @@ class App:
         self.button_frame = ttk.Frame(self.outer_frame)
         self.button_frame.grid(row=1, column=0, columnspan=2, pady=20)
 
-        self.btn1 = ttk.Button(self.button_frame, text="Button", command=self.on_button1)
-        self.btn1.grid(row=0, column=0, padx=20)
-
-        self.btn2 = ttk.Button(self.button_frame, text="Button", command=self.on_button2)
-        self.btn2.grid(row=0, column=1, padx=20)
+        self.recording_btn = ttk.Button(self.button_frame, text=START_RECORDING_TEXT, command=self.on_recording_btn)
+        self.recording_btn.grid(row=0, column=0, padx=20)
 
     def configure_grid(self):
         # Root expands
@@ -75,11 +83,18 @@ class App:
         self.outer_frame.grid_columnconfigure(0, weight=1)
         self.outer_frame.grid_columnconfigure(1, weight=1)
 
-    def on_button1(self):
+    def on_recording_btn(self):
         self.text_label.config(text="Button 1 clicked")
+        self.toggle_recording()
 
-    def on_button2(self):
-        self.text_label.config(text="Button 2 clicked")
+    def toggle_recording(self):
+        """Toggle between start and stop recording"""
+        if not self.audio_manager.is_recording:
+            self.audio_manager.start_recording()
+            self.recording_btn.config(text=STOP_RECORDING_TEXT)
+        else:
+            self.audio_manager.stop_recording()
+            self.recording_btn.config(text=START_RECORDING_TEXT)
 
 
 if __name__ == "__main__":
