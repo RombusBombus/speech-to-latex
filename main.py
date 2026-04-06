@@ -9,11 +9,14 @@ from PIL import Image, ImageTk
 from generativepy.color import Color
 from generativepy.formulas import rasterise_formula
 from LatexRenderer import render_latex_to_image
+import pyperclip
 
 
 DARK_BG = "#1e1e1e"
 START_RECORDING_TEXT = "Start Recording"
 STOP_RECORDING_TEXT = "Stop Recording"
+ENABLE_EDIT_MODE_TEXT = "Enable Edit Mode"
+DISABLE_EDIT_MODE_TEXT = "Disable Edit Mode"
 
 
 class App:
@@ -82,6 +85,10 @@ class App:
         self.copy_latex_btn = ttk.Button(self.button_frame, text="Copy LaTeX", command=self.copy_latex_to_clipboard)
         self.copy_latex_btn.grid(row=0, column=1, padx=20)
 
+        self.toggle_edit_mode_btn = ttk.Button(self.button_frame, text=ENABLE_EDIT_MODE_TEXT, command=self.toggle_edit_mode)
+        self.toggle_edit_mode_btn.grid(row=0, column=2, padx=20)
+        self.edit_mode = False  # Track edit mode state
+
     def configure_grid(self):
         # Root expands
         self.root.grid_rowconfigure(0, weight=1)
@@ -112,19 +119,46 @@ class App:
                 self.text_label.config(text=result)
                 # remove the audio file after transcription
                 os.remove(filename)
-                latex_result = self.openai_wrapper.generate_latex(result)
-                img, parsed_latex = render_latex_to_image(latex_result)
-                self.parsed_latex = parsed_latex  # Store the parsed LaTeX for clipboard copying
-                self.image_label.config(image=img, text="")
-                self.image_label.image = img  # Keep a reference to avoid garbage collection
+                if self.edit_mode:
+                    edited_latex = self.openai_wrapper.edit_latex(self.parsed_latex, result)
+                    img, parsed_latex = render_latex_to_image(edited_latex)
+                    self.parsed_latex = parsed_latex  # Update the stored LaTeX for clipboard copying
+                    self.image_label.config(image=img, text="")
+                    self.image_label.image = img  # Keep a reference to avoid garbage collection
+                    self.copy_latex_to_clipboard()  # Automatically copy updated LaTeX to clipboard
+                else:
+                    latex_result = self.openai_wrapper.generate_latex(result)
+                    img, parsed_latex = render_latex_to_image(latex_result)
+                    self.parsed_latex = parsed_latex  # Store the parsed LaTeX for clipboard copying
+                    self.image_label.config(image=img, text="")
+                    self.image_label.image = img  # Keep a reference to avoid garbage collection
+                    self.copy_latex_to_clipboard()  # Automatically copy LaTeX to clipboard after generation
             else:
                 print("No audio file to transcribe")
     
+    def toggle_edit_mode(self):
+        self.edit_mode = not self.edit_mode
+        
+        if self.edit_mode:
+            self.toggle_edit_mode_btn.config(text=DISABLE_EDIT_MODE_TEXT)
+            print("Edit mode enabled")
+        else:
+            self.toggle_edit_mode_btn.config(text=ENABLE_EDIT_MODE_TEXT)
+            print("Edit mode disabled")
+
+    
     def copy_latex_to_clipboard(self):
         """Copy the LaTeX code to the clipboard"""
+
         if hasattr(self, 'parsed_latex'):
+            # remove \[ and \] from the LaTeX code before copying
+            cleaned_latex = self.parsed_latex.replace(r"\[", "").replace(r"\]", "")
+
+            print(cleaned_latex)
+
             self.root.clipboard_clear()
-            self.root.clipboard_append(self.parsed_latex)
+            self.root.clipboard_append(cleaned_latex)
+            pyperclip.copy(cleaned_latex)  # Also copy using pyperclip for better compatibility
             print("LaTeX code copied to clipboard")
         else:
             print("No LaTeX code to copy")

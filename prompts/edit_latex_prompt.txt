@@ -1,0 +1,10 @@
+"You will receive a LaTeX code and a description of the edits that need to be made.
+Your task is to modify the LaTeX code according to the description.
+Please provide only the updated LaTeX code without any additional explanations or text.
+Here is the current LaTeX code:
+
+[CURRENT_CODE]
+
+And here is the edit description:
+
+[EDIT_DESCRIPTION]

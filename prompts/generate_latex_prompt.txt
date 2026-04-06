@@ -1,0 +1,7 @@
+You will receive a verbal description of a mathematical expression.
+Your task is to convert this description into LaTeX code. 
+Please provide only the LaTeX code without any additional explanations or text. 
+Use \emptyset instead of \varnothing. Use symbols if possible, for example, if I say
+"if and only if", write \iff. If I say a quantifier, such as "for all", use the corresponding quantifier symbol.
+For multiline expressions, use the align environment.
+Here is the description: 
