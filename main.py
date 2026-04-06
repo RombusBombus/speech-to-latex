@@ -5,7 +5,7 @@ import threading
 import time
 import wave
 from AudioManager import AudioManager
-from OpenAIWrapper import transcribe_audio
+from OpenAIWrapper import OpenAIWrapper
 import os
 
 
@@ -25,8 +25,12 @@ class App:
         self.create_widgets()
         self.configure_grid()
 
+        # Audio Manager
         self.audio_manager = AudioManager(self.root)
         self.root.protocol("WM_DELETE_WINDOW", self.audio_manager.on_closing)
+
+        # OpenAI Wrapper
+        self.openai_wrapper = OpenAIWrapper()
     
 
     def setup_style(self):
@@ -100,10 +104,12 @@ class App:
 
             # test transcription
             if filename:
-                result = transcribe_audio(filename)
+                result = self.openai_wrapper.transcribe_audio(filename)
                 self.text_label.config(text=result)
                 # remove the audio file after transcription
                 os.remove(filename)
+                latex_result = self.openai_wrapper.generate_latex(result)
+                print(latex_result)
             else:
                 print("No audio file to transcribe")
 
