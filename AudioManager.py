@@ -8,7 +8,7 @@ class AudioManager:
 
     def __init__(self, root):
         self.root = root
-        
+
         # Audio recording parameters
         self.audio_format = pyaudio.paInt16
         self.channels = 1  # Mono
@@ -83,16 +83,12 @@ class AudioManager:
             self.record_thread.daemon = True
             self.record_thread.start()
             
-            # # Update UI
-            # self.button.config(text="Stop Recording", bg="red")
-            # self.status_label.config(text="Status: Recording...")
-            
         except Exception as e:
             print("Error", f"Could not start recording: {e}")
             self.is_recording = False
     
     def stop_recording(self):
-        """Stop recording and save the audio file"""
+        """Stop recording and save the audio file, returns the filename of the saved audio"""
         print("Stopping recording...")
         self.is_recording = False
         
@@ -111,11 +107,10 @@ class AudioManager:
             filename = f"recording_{int(time.time())}.wav"
             self.save_audio(filename)
             print(f"Status: Saved to {filename}")
+            return filename
         else:
             print("Status: No audio recorded")
-        
-        # # Update UI
-        # self.button.config(text="Start Recording", bg="green")
+            return None
 
     def on_closing(self):
         """Clean up resources when closing the app"""

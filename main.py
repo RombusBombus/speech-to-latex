@@ -5,6 +5,8 @@ import threading
 import time
 import wave
 from AudioManager import AudioManager
+from OpenAIWrapper import transcribe_audio
+import os
 
 
 DARK_BG = "#1e1e1e"
@@ -93,8 +95,17 @@ class App:
             self.audio_manager.start_recording()
             self.recording_btn.config(text=STOP_RECORDING_TEXT)
         else:
-            self.audio_manager.stop_recording()
+            filename = self.audio_manager.stop_recording()
             self.recording_btn.config(text=START_RECORDING_TEXT)
+
+            # test transcription
+            if filename:
+                result = transcribe_audio(filename)
+                self.text_label.config(text=result)
+                # remove the audio file after transcription
+                os.remove(filename)
+            else:
+                print("No audio file to transcribe")
 
 
 if __name__ == "__main__":
