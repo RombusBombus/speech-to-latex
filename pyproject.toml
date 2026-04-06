@@ -5,7 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "generativepy>=24.11",
+    "matplotlib>=3.10.8",
     "openai>=2.30.0",
+    "pillow>=12.2.0",
     "pyaudio>=0.2.14",
     "python-dotenv>=1.2.2",
 ]

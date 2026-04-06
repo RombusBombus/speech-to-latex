@@ -1,12 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
-import pyaudio
-import threading
-import time
-import wave
 from AudioManager import AudioManager
 from OpenAIWrapper import OpenAIWrapper
 import os
+import matplotlib.pyplot as plt
+import io
+from PIL import Image, ImageTk
+from generativepy.color import Color
+from generativepy.formulas import rasterise_formula
+from LatexRenderer import render_latex_to_image
 
 
 DARK_BG = "#1e1e1e"
@@ -77,6 +79,9 @@ class App:
         self.recording_btn = ttk.Button(self.button_frame, text=START_RECORDING_TEXT, command=self.on_recording_btn)
         self.recording_btn.grid(row=0, column=0, padx=20)
 
+        self.copy_latex_btn = ttk.Button(self.button_frame, text="Copy LaTeX", command=self.copy_latex_to_clipboard)
+        self.copy_latex_btn.grid(row=0, column=1, padx=20)
+
     def configure_grid(self):
         # Root expands
         self.root.grid_rowconfigure(0, weight=1)
@@ -102,16 +107,27 @@ class App:
             filename = self.audio_manager.stop_recording()
             self.recording_btn.config(text=START_RECORDING_TEXT)
 
-            # test transcription
             if filename:
                 result = self.openai_wrapper.transcribe_audio(filename)
                 self.text_label.config(text=result)
                 # remove the audio file after transcription
                 os.remove(filename)
                 latex_result = self.openai_wrapper.generate_latex(result)
-                print(latex_result)
+                img, parsed_latex = render_latex_to_image(latex_result)
+                self.parsed_latex = parsed_latex  # Store the parsed LaTeX for clipboard copying
+                self.image_label.config(image=img, text="")
+                self.image_label.image = img  # Keep a reference to avoid garbage collection
             else:
                 print("No audio file to transcribe")
+    
+    def copy_latex_to_clipboard(self):
+        """Copy the LaTeX code to the clipboard"""
+        if hasattr(self, 'parsed_latex'):
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.parsed_latex)
+            print("LaTeX code copied to clipboard")
+        else:
+            print("No LaTeX code to copy")
 
 
 if __name__ == "__main__":
