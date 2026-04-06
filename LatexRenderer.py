@@ -1,22 +1,34 @@
-import matplotlib.pyplot as plt
-import io
 from PIL import Image, ImageTk
+import subprocess
 
 
 def render_latex_to_image(latex_code):
-    # strip the \[ and \] from the latex result
-    if latex_code.startswith("\\[") and latex_code.endswith("\\]"):
-        latex_code = latex_code[2:-2].strip()
+    tex_file = f"temp.tex"
 
-    plt.rcParams['text.usetex'] = True
-    fig = plt.figure()
-    plt.text(0.5, 0.5, f"${latex_code}$", fontsize=20, ha='center', va='center')
-    plt.axis('off')
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1)
-    plt.close(fig)
-    buf.seek(0)
-    img = Image.open(buf)
-    img = ImageTk.PhotoImage(img)
+    latex_document = rf"""
+        \documentclass[preview,border=2pt]{{standalone}}
+        \usepackage{{amsmath}}
+        \begin{{document}}
+        {latex_code}
+        \end{{document}}
+    """
 
-    return img, latex_code
+    with open(tex_file, "w") as f:
+        f.write(latex_document)
+
+    subprocess.run(
+        ["pdflatex", "-interaction=nonstopmode", tex_file],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    subprocess.run(
+        ["pdftoppm", "-png", f"temp.pdf", "temp"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    img = Image.open(f"temp-1.png")
+    tk_img = ImageTk.PhotoImage(img)
+
+    return tk_img, latex_code
